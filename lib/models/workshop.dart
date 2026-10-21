@@ -29,11 +29,11 @@ class Workshop {
     required this.when,
     required this.limit,
     required this.place,
-    required List<String> names,
+    required this.names,
     required this.online,
     required this.description,
     required this.favourite,
-  }) : _names = names;
+  });
 
   // Copy at the boundary: changing the caller's list cannot change this model.
   factory Workshop({
@@ -75,17 +75,16 @@ class Workshop {
   final DateTime when;
   final int limit;
   final String place;
-  final List<String> _names;
+  final List<String> names;
   final bool online;
   final String? description;
   final bool favourite;
 
-  List<String> get names => _names;
-  int get count => _names.length;
+  int get count => names.length;
   int get freePlaces => (limit - count).clamp(0, limit);
   bool get isFull => count >= limit;
   bool get isPast => when.isBefore(DateTime.now());
-  bool contains(String name) => _names.any((entry) => entry == name);
+  bool contains(String name) => names.any((entry) => entry == name);
   ({int taken, int free}) get places => (taken: count, free: freePlaces);
 
   Workshop copyWith({
@@ -107,7 +106,7 @@ class Workshop {
     when: when ?? this.when,
     limit: limit ?? this.limit,
     place: place ?? this.place,
-    names: names ?? _names,
+    names: names ?? this.names,
     online: online ?? this.online,
     description: clearDescription ? null : description ?? this.description,
     favourite: favourite ?? this.favourite,

@@ -5,15 +5,18 @@ sealed class Countdown {
     final remaining = start.difference(now);
     if (remaining.isNegative == false) return Upcoming(remaining);
     final elapsed = now.difference(start);
-    return elapsed < const Duration(hours: 1) ? Started(elapsed) : const Ended();
+    return elapsed < const Duration(hours: 1)
+        ? Started(elapsed)
+        : const Ended();
   }
 
   String get label => switch (this) {
-    Upcoming(:final remaining) => remaining.inDays > 0
-        ? 'In ${remaining.inDays} days'
-        : remaining.inHours > 0
-        ? 'In ${remaining.inHours} h ${remaining.inMinutes.remainder(60)} min'
-        : 'In ${remaining.inMinutes} min',
+    Upcoming(:final remaining) =>
+      remaining.inDays > 0
+          ? 'In ${remaining.inDays} days'
+          : remaining.inHours > 0
+          ? 'In ${remaining.inHours} h ${remaining.inMinutes.remainder(60)} min'
+          : 'In ${remaining.inMinutes} min',
     Started(:final elapsed) => 'Started ${elapsed.inMinutes} min ago',
     Ended() => 'Ended',
   };
