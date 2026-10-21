@@ -43,7 +43,8 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   void _goToProfile() {
-    Navigator.pop(context);
+    // A SnackBar action can outlive this route if the user pressed Back first.
+    if (mounted) Navigator.pop(context);
     widget.arguments.onSelectTab(AppTab.profile);
   }
 
