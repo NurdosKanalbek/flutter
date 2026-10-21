@@ -52,5 +52,34 @@ A simulated inset test does not replace the required real-keyboard device check.
 - `tablet.png`: complete the form on a tablet or a wide desktop viewport and
   capture the summary showing two columns.
 
-Capture these from the running app before final submission. Do not substitute
-mock images for device evidence.
+Both screenshots are committed:
+- [keyboard_open.png](keyboard_open.png): the native Android 11 app, Confirm
+  password focused, the real Android keyboard open, and Sign up visible after
+  scrolling. The group and date messages are the expected validation errors.
+- [tablet.png](tablet.png): the running Flutter web app at 1024 × 900, with the
+  summary in two columns.
+
+## Verification completed
+
+Verified with Flutter 3.47.6 and Dart 3.13.5:
+- `dart format .` completed.
+- `flutter analyze` reported `No issues found!`.
+- All 9 widget tests passed.
+- `flutter build web` passed.
+- `flutter build apk --debug --target-platform android-x64` passed.
+- `flutter run` launched the native APK on the Android 11 AOSP emulator.
+- The real keyboard's Next → Next → Next → Done sequence reached validation.
+  Name stayed intact after password counter rebuilds.
+- Confirm remained visible with the keyboard open; scrolling reached Sign up.
+  No Flutter overflow or unhandled exception appeared during the keyboard check.
+
+The configured local emulator can be opened with:
+
+```sh
+flutter emulators --launch Practice7_API30
+flutter run
+```
+
+To reproduce the tablet capture after building the web app, run
+`node tool/capture_tablet.mjs` with Node.js 22+ and Chrome or Edge installed.
+The capture script fills and submits the running app through browser controls.
