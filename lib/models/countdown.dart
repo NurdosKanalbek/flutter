@@ -13,7 +13,7 @@ sealed class Countdown {
   String get label => switch (this) {
     Upcoming(:final remaining) =>
       remaining.inDays > 0
-          ? 'In ${remaining.inDays} days'
+          ? 'In ${remaining.inDays} ${remaining.inDays == 1 ? 'day' : 'days'}'
           : remaining.inHours > 0
           ? 'In ${remaining.inHours} h ${remaining.inMinutes.remainder(60)} min'
           : 'In ${remaining.inMinutes} min',

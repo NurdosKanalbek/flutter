@@ -27,10 +27,9 @@ class _ShellScreenState extends State<ShellScreen> {
 
   void _selectTab(AppTab tab) => setState(() => _tab = tab);
   void _update(Workshop workshop) => setState(() {
-    _workshops = [
-      for (final current in _workshops)
-        if (current.id == workshop.id) workshop else current,
-    ];
+    _workshops = _workshops
+        .map((current) => current.id == workshop.id ? workshop : current)
+        .toList();
   });
   void _toggleFavourite(Workshop workshop) =>
       _update(workshop.copyWith(favourite: workshop.favourite == false));

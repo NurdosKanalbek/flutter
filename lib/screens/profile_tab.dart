@@ -96,7 +96,7 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
               const SizedBox(height: 8),
               Text(
-                'You are on $count lists',
+                'You are on $count ${count == 1 ? 'list' : 'lists'}',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium,
               ),

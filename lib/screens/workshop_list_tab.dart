@@ -72,124 +72,136 @@ class _WorkshopListTabState extends State<WorkshopListTab> {
       onFavourite: () => widget.onFavourite(items[index]),
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.favouritesOnly
-                    ? 'Your next good idea'
-                    : 'Make something. Meet someone.',
-                style: theme.textTheme.headlineSmall,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showIntro = constraints.maxHeight >= 420;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (showIntro) ...[
+                    Text(
+                      widget.favouritesOnly
+                          ? 'Your next good idea'
+                          : 'Make something. Meet someone.',
+                      style: theme.textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.favouritesOnly
+                          ? 'A place for workshops you want to keep.'
+                          : '${widget.workshops.length} workshops · $free upcoming places',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  TextFormField(
+                    controller: _search,
+                    validator: (_) => null,
+                    onChanged: (_) => setState(() {}),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    decoration: InputDecoration(
+                      labelText: 'Search workshops',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _search.text.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              onPressed: _clearSearch,
+                              icon: const Icon(Icons.close),
+                            ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                widget.favouritesOnly
-                    ? 'A place for workshops you want to keep.'
-                    : '${widget.workshops.length} workshops · $free upcoming places',
-                style: theme.textTheme.bodyMedium,
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                spacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('All'),
+                    selected: _category == null,
+                    onSelected: (_) => setState(() => _category = null),
+                  ),
+                  for (final category in WorkshopCategory.values)
+                    ChoiceChip(
+                      label: Text(category.label),
+                      avatar: Icon(category.icon, size: 18),
+                      selected: _category == category,
+                      onSelected: (_) => setState(() => _category = category),
+                    ),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _search,
-                validator: (_) => null,
-                onChanged: (_) => setState(() {}),
-                onTapOutside: (_) =>
-                    FocusManager.instance.primaryFocus?.unfocus(),
-                decoration: InputDecoration(
-                  labelText: 'Search workshops',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _search.text.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Clear search',
-                          onPressed: _clearSearch,
-                          icon: const Icon(Icons.close),
-                        ),
-                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: Row(
+                children: [
+                  FilterChip(
+                    label: const Text('Include past'),
+                    selected: _includePast,
+                    onSelected: (value) => setState(() => _includePast = value),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${items.length} shown',
+                    style: theme.textTheme.labelMedium,
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            spacing: 8,
-            children: [
-              ChoiceChip(
-                label: const Text('All'),
-                selected: _category == null,
-                onSelected: (_) => setState(() => _category = null),
-              ),
-              for (final category in WorkshopCategory.values)
-                ChoiceChip(
-                  label: Text(category.label),
-                  avatar: Icon(category.icon, size: 18),
-                  selected: _category == category,
-                  onSelected: (_) => setState(() => _category = category),
-                ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          child: Row(
-            children: [
-              FilterChip(
-                label: const Text('Include past'),
-                selected: _includePast,
-                onSelected: (value) => setState(() => _includePast = value),
-              ),
-              const SizedBox(width: 12),
-              Text('${items.length} shown', style: theme.textTheme.labelMedium),
-            ],
-          ),
-        ),
-        Expanded(
-          child: items.isEmpty
-              ? EmptyState(
-                  icon: widget.favouritesOnly && hasFavourites == false
-                      ? Icons.favorite_border
-                      : Icons.search_off,
-                  message: widget.favouritesOnly && hasFavourites == false
-                      ? 'No favourites yet. Keep a workshop with the heart button.'
-                      : 'No workshops match these filters.',
-                  buttonLabel: widget.favouritesOnly && hasFavourites == false
-                      ? 'Browse workshops'
-                      : 'Clear search',
-                  onPressed: widget.favouritesOnly && hasFavourites == false
-                      ? widget.onBrowse
-                      : _clearSearch,
-                )
-              : LayoutBuilder(
-                  builder: (context, constraints) => constraints.maxWidth >= 600
-                      ? GridView.builder(
-                          padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
-                          gridDelegate:
-                              const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 360,
-                                mainAxisExtent: 184,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                              ),
-                          itemCount: items.length,
-                          itemBuilder: (_, index) => card(index),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
-                          itemCount: items.length,
-                          separatorBuilder: (_, index) =>
-                              const SizedBox(height: 4),
-                          itemBuilder: (_, index) => card(index),
-                        ),
-                ),
-        ),
-      ],
+            ),
+            Expanded(
+              child: items.isEmpty
+                  ? EmptyState(
+                      icon: widget.favouritesOnly && hasFavourites == false
+                          ? Icons.favorite_border
+                          : Icons.search_off,
+                      message: widget.favouritesOnly && hasFavourites == false
+                          ? 'No favourites yet. Keep a workshop with the heart button.'
+                          : 'No workshops match these filters.',
+                      buttonLabel:
+                          widget.favouritesOnly && hasFavourites == false
+                          ? 'Browse workshops'
+                          : 'Clear search',
+                      onPressed: widget.favouritesOnly && hasFavourites == false
+                          ? widget.onBrowse
+                          : _clearSearch,
+                    )
+                  : LayoutBuilder(
+                      builder: (context, constraints) =>
+                          constraints.maxWidth >= 600
+                          ? GridView.builder(
+                              padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
+                              gridDelegate:
+                                  const SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: 360,
+                                    mainAxisExtent: 184,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
+                                  ),
+                              itemCount: items.length,
+                              itemBuilder: (_, index) => card(index),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
+                              itemCount: items.length,
+                              separatorBuilder: (_, index) =>
+                                  const SizedBox(height: 4),
+                              itemBuilder: (_, index) => card(index),
+                            ),
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
