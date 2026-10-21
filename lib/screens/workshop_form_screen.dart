@@ -29,6 +29,10 @@ class _WorkshopFormScreenState extends State<WorkshopFormScreen> {
   bool _online = false;
   DateTime? _date;
   TimeOfDay? _time;
+  late final _FormValues _initialValues;
+  bool _saving = false;
+  bool _allowPop = false;
+  bool _confirmingDiscard = false;
 
   @override
   void initState() {
@@ -46,11 +50,37 @@ class _WorkshopFormScreenState extends State<WorkshopFormScreen> {
       _dateText.text = formatDate(_original.when);
       _timeText.text = formatTime(_original.when);
     }
+    _initialValues = _values;
   }
 
   _FormValues get _values => (title: _title.text, place: _place.text,
     limit: _limit.text, description: _description.text,
     category: _category, online: _online, date: _date, time: _time);
+
+  bool get _dirty => _values != _initialValues;
+
+  Future<void> _pop(Workshop? workshop) async {
+    setState(() => _allowPop = true);
+    // PopScope must receive the new canPop before Navigator.pop is attempted.
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted == false) return;
+    Navigator.pop(context, workshop);
+  }
+
+  Future<void> _discard() async {
+    if (_confirmingDiscard) return;
+    _confirmingDiscard = true;
+    final discard = await showDialog<bool>(context: context, builder: (dialogContext) =>
+      AlertDialog(title: const Text('Discard changes?'),
+        content: const Text('Your changes have not been saved.'),
+        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Keep editing')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Discard'))]));
+    if (mounted == false) return;
+    _confirmingDiscard = false;
+    if (discard == true) await _pop(null);
+  }
 
   DateTime? get _when => switch ((_date, _time)) {
     (final date?, final time?) => DateTime(date.year, date.month, date.day, time.hour, time.minute),
@@ -99,19 +129,24 @@ class _WorkshopFormScreenState extends State<WorkshopFormScreen> {
     });
   }
 
-  void _save() {
+  Future<void> _save() async {
+    if (_saving) return;
     // Safe here: this handler belongs to the mounted Form's Save button.
     if (_formKey.currentState!.validate() == false) return;
     final when = _when;
     final category = _category;
     if (when == null || category == null) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _saving = true);
+    await Future<void>.delayed(const Duration(seconds: 1));
+    if (mounted == false) return;
     final description = _description.text.trim();
     final workshop = _original.copyWith(
       id: widget.workshop?.id ?? 'maker-${DateTime.now().microsecondsSinceEpoch}',
       title: _title.text.trim(), place: _place.text.trim(),
       limit: int.parse(_limit.text.trim()), category: category, online: _online,
       when: when, description: description, clearDescription: description.isEmpty);
-    Navigator.pop(context, workshop);
+    await _pop(workshop);
   }
 
   @override
@@ -124,10 +159,16 @@ class _WorkshopFormScreenState extends State<WorkshopFormScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => PopScope<Workshop>(
+    canPop: _allowPop || (_dirty == false && _saving == false),
+    onPopInvokedWithResult: (didPop, result) {
+      if (didPop == false && _saving == false) _discard();
+    },
+    child: Scaffold(
     appBar: AppBar(title: Text(widget.workshop == null ? 'New workshop' : 'Edit workshop')),
     body: SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.all(16),
       child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 600),
+        child: AbsorbPointer(absorbing: _saving,
         child: Form(key: _formKey, autovalidateMode: AutovalidateMode.onUserInteraction,
           onChanged: () => setState(() {}), child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -184,9 +225,12 @@ class _WorkshopFormScreenState extends State<WorkshopFormScreen> {
                 onFieldSubmitted: (_) => _save(),
                 onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus()),
               const SizedBox(height: 24),
-              FilledButton.icon(onPressed: _save, icon: const Icon(Icons.check), label: const Text('Save')),
+              FilledButton.icon(onPressed: _saving ? null : _save,
+                icon: _saving ? const SizedBox(width: 18, height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.check),
+                label: Text(_saving ? 'Saving…' : 'Save')),
               const SizedBox(height: 16),
             ])),
-      )))),
-  );
+      ))))),
+  ));
 }
