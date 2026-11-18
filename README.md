@@ -11,4 +11,6 @@ Mobile Development Course Practices and Project by Nurdos Kanalbek.
 - **[Practice 7](./Practice%207)**: Validated Sign-up Form & Responsive Summary
 - **[Practice 8](./Practice%208)**: Reading List with Navigation & Validated Book Form
 - **[Practice 9](./Practice%209)**: Put It High, Subscribe Low (Shop with Provider)
+- **[Practice 10](./Practice%2010)**: Async Programming, Futures, Streams & Lifecycle
+- **[Practice 11](./Practice%2011)**: A Real Server (Users API, Clean Architecture & Http Isolation)
 - **[Campus Makers](./Campus%20Makers)**: Standalone Maker Workshops Application
